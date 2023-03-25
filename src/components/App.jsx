@@ -1,56 +1,27 @@
-import React, { Component } from 'react';
-import { useState, useEffect } from 'react';
-// import PropTypes, { number } from "prop-types";
+import React from 'react';
 import { GlobalStyle } from './GlobalStyle';
 import { nanoid } from 'nanoid';
 
+import { useState } from 'react';
 import { useLocalStorage } from 'hooks/useLocalStorage';
+
 import Section from './Section/Section';
 import Form from './Form/Form';
 import Filter from './Filter/Filter';
 import ContactsList from './ContactsList/ContactsList';
 
-const testContacts = [
-  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-];
 
+export function App () {
+  const testContacts = JSON.stringify([
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
+  const [contacts, setContacts] = useLocalStorage('contacts', testContacts);
+  const [filter, setFilter] = useState(''); 
 
-
-export default function App () {
-  const [contacts, setContacts] = useLocalStorage(contacts, testContacts);
-  const [filter, setFilter] = useState(); 
-
-
-  componentDidMount() {
-    // console.log('App is mounted');
-
-    const localStorageContacts = localStorage.getItem('contacts');
-    const parsedLocalStorageContacts = JSON.parse(localStorageContacts);
-    // console.log(parsedLocalStorageContacts);
-    
-    if (parsedLocalStorageContacts) {
-      this.setState({ contacts: parsedLocalStorageContacts });
-      return;
-    }
-    this.setState({ contacts: testContacts });
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    console.log('App is updated');
-
-    if (this.state.contacts !== prevState.contacts) {
-      // console.log('Contacts field updated');
-
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  formSubmitHandler = ({ name, number }) => {
-    // console.log("test:", contactData);
-    const { contacts } = this.state;
+  const formSubmitHandler = ({ name, number }) => {
     const existingContact = contacts.find(
       contact =>
         contact.name.toLowerCase() === name.toLowerCase ||
@@ -58,53 +29,46 @@ export default function App () {
     );
     existingContact
       ? alert(`${name}, ${number} is already in contacts`)
-      : this.setState(prevState => ({
-          contacts: [...prevState.contacts, { name, number, id: nanoid() }],
-        }));
-    // console.log(this.prevState);
-    console.log(this.state.contacts);
+      : setContacts(prevState => [...prevState, { name, number, id: nanoid() }],);
+
+    console.log(contacts);
   };
 
-  deleteContactHandler = id => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== id),
-    }));
+  const deleteContactHandler = id => {
+    setContacts(prevState => 
+      prevState.filter(contact => contact.id !== id),
+    );
   };
 
-  changeFilterHandler = event => {
-    this.setState({ filter: event.currentTarget.value });
+  const changeFilterHandler = event => {
+    setFilter( event.currentTarget.value );
   };
 
-  getFilteredContacts = () => {
-    const { filter, contacts } = this.state;
+
+  const getFilteredContacts = () => {
     const normalizedFilter = filter.toLowerCase();
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  render() {
-    const { filter } = this.state;
     return (
       <div
         style={{
-          // height: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          // justifyContent: 'column',
-          // alignItems: 'center',
           fontSize: 16,
           color: '#010101',
         }}
       >
         <Section title="Phonebook">
-          <Form onSubmit={this.formSubmitHandler} />
+          <Form onSubmit={formSubmitHandler} />
         </Section>
         <Section title="Contacts">
-          <Filter value={filter} onChange={this.changeFilterHandler} />
+          <Filter value={filter} onChange={changeFilterHandler} />
           <ContactsList
-            contacts={this.getFilteredContacts()}
-            onDeleteContact={this.deleteContactHandler}
+            contacts={getFilteredContacts()}
+            onDeleteContact={deleteContactHandler}
           />
         </Section>
 
@@ -112,4 +76,5 @@ export default function App () {
       </div>
     );
   }
-}
+
+  export default App;
